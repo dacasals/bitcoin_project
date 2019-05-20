@@ -19,7 +19,6 @@ if sys.version_info.major < 3:
     sys.exit(1)
 
 import hashlib
-
 from bitcoin import SelectParams
 from bitcoin.core import b2x, lx, COIN, COutPoint, CMutableTxOut, CMutableTxIn, CMutableTransaction, Hash160, x, Hash
 from bitcoin.core.script import CScript, OP_DUP, OP_HASH160, OP_EQUALVERIFY, OP_CHECKSIG, SignatureHash, SIGHASH_ALL
@@ -80,7 +79,7 @@ worked = VerifyScript(txin.scriptSig, txin_scriptPubKey, tx, 0, (SCRIPT_VERIFY_P
 
 # Done! Print the transaction to standard output with the bytes-to-hex
 # function.
-print("Script response: {}".format(b2x(tx.serialize()) ))
+print("Script response: {}".format(b2x(tx.serialize())))
 serialization = b2x(tx.serialize()) + '01000000'
 print(serialization)
 h1 = x(serialization)
