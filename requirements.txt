@@ -1,0 +1,16 @@
+base58==1.0.3
+base58check==1.0.2
+certifi==2019.3.9
+chardet==3.0.4
+crypto==1.4.1
+deserialize==0.9.0
+ecdsa==0.13.2
+idna==2.8
+keyutils==0.6
+Naked==0.1.31
+pycryptodome==3.8.1
+python-bitcoinlib==0.10.1
+PyYAML==5.1
+requests==2.22.0
+shellescape==3.4.1
+urllib3==1.25.2
