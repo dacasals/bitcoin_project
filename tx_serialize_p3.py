@@ -92,8 +92,6 @@ sigscript = (
 
 	)
 
-print(sigscript)
-print("****************************")
 real_tx = (
 	rtx.version
 	+ rtx.tx_in_count
