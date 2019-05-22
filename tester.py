@@ -159,8 +159,9 @@ class Raw_signature_tx:
 
 # object1 = Raw_signature_tx(txOrg1)
 # object1.printer_all()
-
-txOrgCcharpexample = '01000000015cd81501e2a63c942fcb24de76d4532406156c8cb10b5dcb123a1cb5be13d884000000008b483045022100df23170d28033b4bac1f52873683ae15879dfc83544738224d35bdbb8eb4957202204a6b6125a997c9b15a99c18a7b6e552459748a34acd2a1202ca0023f2af56e6d0141047876bf5609fc7f455ecc082ab2d9da8ebe717880cbbf570dbdda5013553af51ce98b8d47360648b1a6dd9cbe9b8baa73ecff1aa513928952c09313b51c8ba0a4ffffffff02a0860100000000001976a914ce2b9b149dc0bbb831a38b935bffc8e6c7da38dc88ac404b4c00000000001976a9146a946a2bc8376faaabf41b41b26ac5f67f12dba688ac00000000'
+import sys
+print("Enter raw Tx :")
+txOrgCcharpexample = sys.stdin.readline()[:-1]
 
 object2 = Raw_signature_tx(txOrgCcharpexample)
 object2.printer_all(False)
