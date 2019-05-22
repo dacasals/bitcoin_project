@@ -37,9 +37,8 @@ from signatures import *
 # 8b483045022100884d142d86652a3f47 ba4746ec719bbfbd040a570b1deccbb6498c75c4ae24cb02204b9f039 ff08df09cbe9f6addac960298cad530a863ea8f53982c09db8f6e3813 01410484ecc0d46f1918b30928fa0e4ed99f16a0fb4fde0735e7ade84 16ab9fe423cc5412336376789d172787ec3457eee41c04f4938de5cc1 7b4a10fa336a8d752adfffffffff0260e31600000000001976a914ab6 8025513c3dbd2f7b92a94e0581f5d50f654e788acd0ef800000000000 1976a9147f9b1a7fb68d60c536c2fd8aeaa53a8f3cc025a888ac 00000000
 # '''
 
-txOrg = "0200000000010111b6e0460bb810b05744f8d38262f95fbab02b168b070598a6f31fad438fced4000000001716001427c106013c0042da165c082b3870c31fb3ab4683feffffff0200ca9a3b0000000017a914d8b6fcc85a383261df05423ddf068a8987bf0287873067a3fa0100000017a914d5df0b9ca6c0e1ba60a9ff29359d2600d9c6659d870247304402203b85cb05b43cc68df72e2e54c6cb508aa324a5de0c53f1bbfe997cbd7509774d022041e1b1823bdaddcd6581d7cde6e6a4c4dbef483e42e59e04dbacbaf537c3e3e8012103fbbdb3b3fc3abbbd983b20a557445fb041d6f21cc5977d2121971cb1ce5298978c000000"
+txOrg = "01000000015cd81501e2a63c942fcb24de76d4532406156c8cb10b5dcb123a1cb5be13d884000000008a4730440220404b9f69f969d776f3610192bec0d18a8e47256f39148251d91cfa355c0f9f0302202d060128513a45aae40f75e807acddf0e0d90a097af72de88f1956ce7338216001410437078f8c4a54b67cd1724a3535cb1918bca186c7a143459c9aac35113d4a958b0d4eea6b320fa82c17147b72e0fe11c08b0054897ffb7bdb194f259b0db9e129ffffffff02a0860100000000001976a914478075922af41fb441aa0ab67e91aef27ef1e68688ac50c30000000000001976a914ec06b2bf18c89706855f761d215f21f3315b399488ac00000000"
 
-txOrg1 = "0100000001186f9f998a5aa6f048e51dd8419a14d8a0f1a8a2836dd734d2804fe65fa35779000000008b483045022100884d142d86652a3f47ba4746ec719bbfbd040a570b1deccbb6498c75c4ae24cb02204b9f039ff08df09cbe9f6addac960298cad530a863ea8f53982c09db8f6e381301410484ecc0d46f1918b30928fa0e4ed99f16a0fb4fde0735e7ade8416ab9fe423cc5412336376789d172787ec3457eee41c04f4938de5cc17b4a10fa336a8d752adfffffffff0260e31600000000001976a914ab68025513c3dbd2f7b92a94e0581f5d50f654e788acd0ef8000000000001976a9147f9b1a7fb68d60c536c2fd8aeaa53a8f3cc025a888ac00000000"
 
 class Raw_signature_tx:
     def __init__(self,tx):
@@ -48,14 +47,16 @@ class Raw_signature_tx:
             'version': ['Version',4],
             'flag': ['Flag',2],
             'inputcount': ['Input Count',1],
-            'inputprevoutputhash': ['Input 1 Previous Output Hash',32],
-            'inputprevoutputindex': ['Input 1 Previous Output',4],
-            'scriptlen': ['Script length',1],
+            'inputprevoutputhash': ['Input 1 Outpoint TXID',32],
+            'inputprevoutputindex': ['Outpoint index number',4],
+            'scriptlen': ['Bytes in SignScript',1, 'Push bytes as data',1],
             'inputsecuence': ['Input secuence',4],
             'outputCount': ['Output Count', 1],
             'witnesscount': ['Witness Count', 1],
             'locktime': ['Locktime', 4],
         }
+    def space_separator(self,len_data):
+        return "." * (50 - len_data) if len_data < 50 else "." * 5
     def printer(self, parameter):
 
         if parameter == 'rest':
@@ -67,52 +68,95 @@ class Raw_signature_tx:
         elif parameter == 'scriptlen':
             val = self.txOrg[0:self.bytesused[parameter][1] * 2]
             valint =int(val ,16)
-            print("{}: {} . In hex: {} . Bytes: {}".format(self.bytesused[parameter][0],valint, val, self.bytesused[parameter][1]))
+            len_data = len(val)
+            first_string = "|"
+            space_after_data = self.space_separator(len_data)
+
+            print("{}{}{}:{} . Int Value: {} . Bytes: {}".format(first_string,val,space_after_data,self.bytesused[parameter][0],valint, self.bytesused[parameter][1]))
             self.txOrg = self.txOrg[self.bytesused[parameter][1] * 2:]
 
-            leng_signature = self.txOrg[0:self.bytesused[parameter][1] * 2]
-            leng_signature_int = int(leng_signature,16)
+            val_signature = self.txOrg[0:self.bytesused[parameter][1] * 2]
+            val_signature_int = int(val_signature, 16)
+            len_data = len(val)
+            #self.txOrg = self.txOrg[self.bytesused[parameter][1] * 2:]
 
-            print("Sign script: {} . Bytes: {}".format(self.txOrg[0:valint * 2], self.bytesused[parameter][1]))
-            print("Signature: {} . Bytes: {}".format(self.txOrg[2:leng_signature_int * 2], leng_signature_int))
-            resto = self.txOrg[leng_signature_int*2:leng_signature_int*2 + (valint -leng_signature_int)*2]
-            print("Resto: {} . Bytes: {}".format(resto, leng_signature_int))
-            self.txOrg = self.txOrg[leng_signature_int*2 + (valint -leng_signature_int)*2:]
+            ## Le resto 1 byte al signscript len del len del signature
+            valint = valint -1
+            first_string = "|"
+            space_after_data = self.space_separator(len_data)
+            print("{}{}{}:{} . Int Value: {} . Bytes: {}".format(first_string, val_signature, space_after_data,
+                                                                 self.bytesused[parameter][2], val_signature_int,
+                                                                 self.bytesused[parameter][3]))
+            self.txOrg = self.txOrg[self.bytesused[parameter][1] * 2:]
 
+            signature = self.txOrg[0:(val_signature_int -1) * 2]
+
+            len_data = len(signature)
+            first_string = "|"
+            space_after_data = self.space_separator(len_data)
+
+            print("{}{}{}:Sign script . Bytes: {}".format(first_string,signature,space_after_data, self.bytesused[parameter][1]))
+            self.txOrg = self.txOrg[len_data:]
+            print("|{}{} . Bytes: {}".format(self.txOrg[0:2], ' \\Added after signature', 1))
+            print("|{}{} . Bytes: {}".format(self.txOrg[2:4], ' \\Length of public key', 1))
+            print("{}{}{} . Bytes: {}".format(first_string,self.txOrg[4:int(self.txOrg[2:4], 16)*2], space_after_data,(valint - val_signature_int) * 2))
+            self.txOrg = self.txOrg[int(self.txOrg[2:4], 16)*2 + 4:]
         elif parameter =='outputs':
             counts = int(self.txOrg[0:self.bytesused['outputCount'][1] * 2])
-            print("Cantidad de outputs: {} . Bytes: {}".format(counts, 1))
+            len_data = 1
+            first_string = "|"
+            space_after_data = self.space_separator(len_data)
+
+            print("{}{}{}:{}. Bytes: {}".format(first_string,counts,space_after_data,'Cantidad de outputs', 1))
             self.txOrg = self.txOrg[1 * 2:]
             i = 0
             while i < counts:
                 i+=1
                 value = self.txOrg[0:8 * 2]
                 valueInt = int(b2x(lx(value)),16)
-                print("Output {} value in HEX: {} . value in Satoshies: {} . Bytes: {}".format(i, value, valueInt, 8))
-                self.txOrg = self.txOrg[8 * 2:]
-                lenoutputscript = int(self.txOrg[0:1 * 2],base=16)
-                print("Output {} public key script length: {} . Bytes: {}".format(i, lenoutputscript, 1))
-                self.txOrg = self.txOrg[1 * 2:]
+                len_data = len(value)
+                first_string = "|"
+                space_after_data = self.space_separator(len_data)
 
-                print("Output {} value {} . Bytes: {}".format(i, self.txOrg[0:lenoutputscript * 2], lenoutputscript))
-                self.txOrg = self.txOrg[lenoutputscript * 2:]
+                print("{}{}{}:Output {} . value in Satoshies: {} . Bytes: {}".format(first_string,value,space_after_data, i , valueInt, 8))
+                self.txOrg = self.txOrg[8 * 2:]
+
+                lenoutputscript = self.txOrg[0:1 * 2]
+                lenoutputscriptInt = int(self.txOrg[0:1 * 2],base=16)
+                len_data = len(lenoutputscript)
+                first_string = "|"
+                space_after_data = self.space_separator(len_data)
+                print("{}{}{}:Output {} public key script length . Integer value {} . Bytes: {}".format(first_string,lenoutputscript,space_after_data,i, lenoutputscriptInt, 1))
+                self.txOrg = self.txOrg[1 * 2:]
+                data = self.txOrg[0:lenoutputscriptInt * 2]
+                len_data = len(data)
+                first_string = "|"
+                space_after_data = self.space_separator(len_data)
+                print("{}{}{}:Output {} . Bytes: {}".format(first_string, data, space_after_data, i , lenoutputscriptInt))
+                self.txOrg = self.txOrg[lenoutputscriptInt * 2:]
 
         elif parameter =='witness':
             counts = int(self.txOrg[0:self.bytesused['witnesscount'][1] * 2])
-            print("{}: {} . Bytes: {}".format(self.bytesused['witnesscount'][0],counts, 1))
+            data = self.bytesused['witnesscount'][0]
+            len_data = len(data)
+            first_string = "|"
+            space_after_data = self.space_separator(len_data)
+            print("{}{}{}:{} . Bytes: {}".format(first_string,counts,space_after_data,data, 1))
             self.txOrg = self.txOrg[1 * 2:]
             i = 0
             while i < counts:
                 i+=1
                 lenwitnessdata = int(self.txOrg[0:1 * 2],base=16)
-                print("Witness {} length: {} . Bytes: {}".format(i, lenwitnessdata, 1))
+                print("{} Witness {} length: {} . Bytes: {}".format(first_string, i, lenwitnessdata, 1))
                 self.txOrg = self.txOrg[1 * 2:]
                 print("Output {} value: {} . Bytes: {}".format(i, self.txOrg[0:lenwitnessdata * 2], lenwitnessdata))
                 self.txOrg = self.txOrg[lenwitnessdata * 2:]
-
         else:
-
-            print("{}: {} . Bytes: {}".format(self.bytesused[parameter][0],self.txOrg[0:self.bytesused[parameter][1] * 2], self.bytesused[parameter][1]))
+            data = self.txOrg[0:self.bytesused[parameter][1] * 2]
+            len_data = len(data)
+            first_string = "|"
+            space_after_data = "."*(50 -len_data) if len_data < 50 else 5
+            print("{}{}{}:{} . Bytes: {}".format(first_string,data,space_after_data, self.bytesused[parameter][0], self.bytesused[parameter][1]))
             self.txOrg = self.txOrg[self.bytesused[parameter][1] * 2:]
 
     def printer_all(self, width_flag=True):
@@ -137,8 +181,7 @@ class Raw_signature_tx:
 #object1 = Raw_signature_tx(txOrg1)
 #object1.printer_all()
 
-txOrgCcharpexample = '0100000001be66e10da854e7aea9338c1f91cd489768d1d6d7189f586d7a3613f2a24d5396000000008b483045022100da43201760bda697222002f56266bf65023fef2094519e13077f777baed553b102205ce35d05eabda58cd50a67977a65706347cc25ef43153e309ff210a134722e9e0141042daa93315eebbe2cb9b5c3505df4c6fb6caca8b756786098567550d4820c09db988fe9997d049d687292f815ccd6e7fb5c1b1a91137999818d17c73d0f80aef9ffffffff0123ce0100000000001976a9142bc89c2702e0e618db7d59eb5ce2f0f147b4075488ac00000000'
-#txOrgCcharpexample = '0100000001be66e10da854e7aea9338c1f91cd489768d1d6d7189f586d7a3613f2a24d5396000000006b483045022100bbb36669c0c4db391c0c42aa617262da467078a70977cde16f94c4312ecdad8402203b8ba6f479ba12c7848722b1a8cee731ae3b2faf637be6d295e5b2d24915e4360121032daa93315eebbe2cb9b5c3505df4c6fb6caca8b756786098567550d4820c09db                                                                ffffffff0123ce0100000000001976a9142bc89c2702e0e618db7d59eb5ce2f0f147b4075488ac00000000'
+txOrgCcharpexample = '01000000015cd81501e2a63c942fcb24de76d4532406156c8cb10b5dcb123a1cb5be13d884000000008a47304402203f3fa0f312724f41a0fa8c09f371ddf193916dc9c4fc5137711d49f18fafe0a002204f5f2b3925a62fe43d335ed0a17255dc199dedd16f628c1dc4f48f76e16ebe9901410437078f8c4a54b67cd1724a3535cb1918bca186c7a143459c9aac35113d4a958b0d4eea6b320fa82c17147b72e0fe11c08b0054897ffb7bdb194f259b0db9e129ffffffff02a0860100000000001976a914478075922af41fb441aa0ab67e91aef27ef1e68688ac50c30000000000001976a914ec06b2bf18c89706855f761d215f21f3315b399488ac00000000'
 
 object2 = Raw_signature_tx(txOrgCcharpexample)
 object2.printer_all(False)
